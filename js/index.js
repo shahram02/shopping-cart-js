@@ -5,9 +5,10 @@ const productsContainer = document.querySelector(".products-center");
 const cartItem = document.querySelector(".cart-items");
 const cartTotal = document.querySelector(".cart-total");
 const cartContent = document.querySelector(".cart-content");
-
+const clearCart = document.querySelector(".clear-cart");
 
 let cart = [];
+let buttonsDOM = [];
 
 // Get Products
 class Products {
@@ -40,6 +41,7 @@ class ShowUi {
   getBtns() {
     const addToCarBtn = document.querySelectorAll(".add-to-cart");
     const buttons = [...addToCarBtn];
+    buttonsDOM = buttons;
     buttons.forEach((button) => {
       const id = button.dataset.id;
       const isInCart = cart.find((p) => p.id === id);
@@ -49,7 +51,6 @@ class ShowUi {
       }
       button.addEventListener("click", (e) => {
         const addProduct = { ...Storage.getProduct(id), quantity: 1 };
-        console.log(addProduct);
         cart = [...cart, addProduct];
         Storage.saveCarts(cart);
         e.target.innerText = "در سبد خرید موجود هست";
@@ -90,6 +91,41 @@ class ShowUi {
     cart = Storage.getCart();
     cart.forEach((cItem) => this.addCartItem(cItem)) || [];
     this.setCartValue(cart);
+    this.cartLogic();
+  }
+  cartLogic() {
+    clearCart.addEventListener("click", () => this.clearCart());
+    cartContent.addEventListener("click", (e) => {
+      const item = e.target;
+      if (item.classList.contains("fa-chevron-up")) {
+        const addQuantity = e.target;
+        const addItem = cart.find(
+          (cItem) => cItem.id == addQuantity.dataset.id
+        );
+        addItem.quantity++;
+        this.setCartValue(cart);
+        Storage.saveCarts(cart);
+        addQuantity.nextElementSibling.innerText = addItem.quantity;
+      }
+    });
+  }
+  clearCart() {
+    cart.forEach((cItem) => this.removeItem(cItem.id));
+    while (cartContent.children.length) {
+      cartContent.removeChild(cartContent.children[0]);
+    }
+    closeModalFunction();
+  }
+  removeItem(id) {
+    cart = cart.filter((cItem) => cItem.id != id);
+    this.setCartValue(cart);
+    Storage.saveCarts(cart);
+    console.log(buttonsDOM);
+    const clickButton = buttonsDOM.find(
+      (btn) => parseInt(btn.dataset.id) === parseInt(id)
+    );
+    clickButton.innerText = "اضافه کردن به سبد خرید";
+    clickButton.disabled = false;
   }
 }
 
