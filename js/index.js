@@ -81,9 +81,9 @@ class ShowUi {
    <div class="cart-item-conteoller">
      <i class="fas fa-chevron-up" data-id=${product.id}></i>
      <p>1</p>
-     <i class="fas fa-chevron-down" ${product.id}></i>
+     <i class="fas fa-chevron-down" data-id=${product.id}></i>
    </div>
-   <i class="fas fa-trash-alt" ${product.id}></i>
+   <i class="fas fa-trash-alt" data-id=${product.id}></i>
    `;
     cartContent.appendChild(div);
   }
@@ -106,6 +106,27 @@ class ShowUi {
         this.setCartValue(cart);
         Storage.saveCarts(cart);
         addQuantity.nextElementSibling.innerText = addItem.quantity;
+      } else if (item.classList.contains("fa-trash-alt")) {
+        const removeItem = e.target;
+        const removedItem = cart.find((c) => c.id == removeItem.dataset.id);
+        this.removeItem(removedItem.id);
+        Storage.saveCarts(cart);
+        cartContent.removeChild(removeItem.parentElement);
+      } else if (item.classList.contains("fa-chevron-down")) {
+        const subQuantity = e.target;
+        const substrackedItem = cart.find(
+          (c) => c.id == subQuantity.dataset.id
+        );
+        if (substrackedItem.quantity == 1) {
+          this.removeItem(substrackedItem.id);
+          cartContent.removeChild(subQuantity.parentElement.parentElement);
+          Storage.saveCarts(cart);
+          return;
+        }
+        substrackedItem.quantity--;
+        this.setCartValue(cart);
+        Storage.saveCarts(cart);
+        subQuantity.previousElementSibling.innerText = substrackedItem.quantity;
       }
     });
   }
