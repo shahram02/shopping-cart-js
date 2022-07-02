@@ -4,6 +4,8 @@ import { productsData } from "./products.js";
 const productsContainer = document.querySelector(".products-center");
 const cartItem = document.querySelector(".cart-items");
 const cartTotal = document.querySelector(".cart-total");
+const cartContent = document.querySelector(".cart-content");
+
 
 let cart = [];
 
@@ -46,13 +48,14 @@ class ShowUi {
         button.disabled = true;
       }
       button.addEventListener("click", (e) => {
-        const addProduct = Storage.getProduct(id);
+        const addProduct = { ...Storage.getProduct(id), quantity: 1 };
         console.log(addProduct);
-        cart = [...cart, { ...addProduct, quantity: 1 }];
+        cart = [...cart, addProduct];
         Storage.saveCarts(cart);
         e.target.innerText = "در سبد خرید موجود هست";
         e.target.disabled = true;
         this.setCartValue(cart);
+        this.addCartItem(addProduct);
       });
     });
   }
@@ -65,6 +68,29 @@ class ShowUi {
     cartItem.innerText = totalItems;
     cartTotal.innerHTML = `مجموع قیمت${totalPrice.toFixed(2)} تومان`;
   }
+  addCartItem(product) {
+    const div = document.createElement("div");
+    div.classList.add("cart-item");
+    div.innerHTML = `
+   <img class="cart-item-img" src=${product.imageUrl} />
+   <div class="cart-item-desc">
+     <h4>${product.title}</h4>
+     <h5>ریال ${product.price}</h5>
+   </div>
+   <div class="cart-item-conteoller">
+     <i class="fas fa-chevron-up" data-id=${product.id}></i>
+     <p>1</p>
+     <i class="fas fa-chevron-down" ${product.id}></i>
+   </div>
+   <i class="fas fa-trash-alt" ${product.id}></i>
+   `;
+    cartContent.appendChild(div);
+  }
+  setUpApp() {
+    cart = Storage.getCart();
+    cart.forEach((cItem) => this.addCartItem(cItem)) || [];
+    this.setCartValue(cart);
+  }
 }
 
 // Storage
@@ -73,14 +99,15 @@ class Storage {
     localStorage.setItem("products", JSON.stringify(products));
   }
   static getProduct(id) {
-    console.log(id);
     const products = JSON.parse(localStorage.getItem("products"));
     return products.find((p) => p.id == parseInt(id));
   }
   static saveCarts(cart) {
     localStorage.setItem("cart", JSON.stringify(cart));
   }
-  static getCart() {}
+  static getCart() {
+    return JSON.parse(localStorage.getItem("cart"));
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -90,6 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const showUi = new ShowUi();
   showUi.addToDOM(dataProducts);
   showUi.getBtns();
+  showUi.setUpApp();
 
   //   Storage
   Storage.saveProducts(productsData);
